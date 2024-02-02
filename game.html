@@ -107,9 +107,9 @@
         alive: true,
       };
       // hente alle hero elementene fra html koden
-      // lager også en const for elementene vi henter  og klikkbare gjennom evnetlistener. henter også info gjennom id
+      //  klikkbare gjennom evnetlistener. henter også arrayet gjennom id
       const heroElements = document.querySelectorAll(".hero");
-      heroElements.forEach((heroElement,id) => {
+      heroElements.forEach((heroElement, id) => {
         heroElement.addEventListener("click", () => {
           const hero = heroesArray[id];
           const dragon = dragonObject;
@@ -130,14 +130,16 @@
           dragonObject.currentHP = dragon.currentHP;
           //kaller på begge funksjonene
           heroAttack(hero, dragon);
-          dragonAttack()
+          dragonAttack();
         });
       });
+
       //lager en funksjon som velger en radom helt
       function dragonAttack() {
         const randomHeroAttack = Math.floor(Math.random() * heroesArray.length);
         const randomHero = heroesArray[randomHeroAttack];
-        //dragen angreper bare hvis .alive er true
+
+        // Dragen angriper bare hvis .alive er true
         if (randomHero.alive) {
           const dragonDamage = dragonObject.damage;
           randomHero.currentHP -= dragonDamage;
@@ -145,20 +147,68 @@
             `${dragonObject.name} har angrepet ${randomHero.name} og gjort ${dragonDamage} damage!`
           );
 
+          //kaller på funksjoinen som oppdaterer navn og HP
+          nameAndHealth();
           if (randomHero.currentHP <= 0) {
             randomHero.alive = false;
-            heroDead(randomHero.id)
-            alert(`${randomHero.name} er beseiret av ${dragonObject.name}!`);
+            const heroDead = document.querySelector(
+              `.img-container.${heroClasses[randomHero.id]}`
+            );
+            //her fikk jeg mye problemer men brukte classlist lagde en const for de forskjellige classenavnene som gjøre at de blir bundet sammen med id-en til karakteren sin
+            if (heroDead) {
+              heroDead.classList.remove("archer", "warrior", "healer");
+              heroDead.remove();
+              alert(`${randomHero.name} er beseiret av ${dragonObject.name}!`);
+
+              if (dragonObject.currentHP <= 0) {
+                victoryGame();
+              }
+              dragonWin();
+            }
           }
         }
       }
-      function heroDead(heroId) {
-      const heroDead = document.querySelector(`.hero[id="${heroId}"]`);
-      if (heroDead) {heroDead.remove()
-      }
+      //binder id med classe navnene til classenavnene til hver enkelt helt hero img container
+      const heroClasses = {
+        0: "healer",
+        1: "archer",
+        2: "warrior",
+      };
+      function victoryGame() {
+        dragonObject.alive = false;
+        const dragonDead = document.querySelector(`.enemy-container`);
+        dragonDead.remove();
+        alert(`Gratulerer du har vunnet spillet! ${dragonObject.name} er dø!`);
       }
 
+      function nameAndHealth() {
+        const dragonName = document.getElementById(`dragon-name-txt`);
+        const dragonHealth = document.querySelector(`.dragon-health-txt`);
 
+        dragonName.innerHTML = dragonObject.name;
+        dragonHealth.innerHTML = `${dragonObject.currentHP}/${dragonObject.maxHP} HP`;
+
+        heroesArray.forEach((hero, id) => {
+          const heroName = document.getElementById(
+            `${heroClasses[id]}-name-txt`
+          );
+          const heroHealth = document.getElementById(
+            `${heroClasses[id]}-health-txt`
+          );
+          heroName.innerHTML = hero.name;
+          heroHealth.innerHTML = `${hero.currentHP} / ${hero.maxHP} HP`;
+        });
+      }
+      nameAndHealth();
+      function dragonWin() {
+        // finner ut om det minst er en hero i live
+        const atLeastOneHeroAlive = heroesArray.some((hero) => hero.alive);
+        // sender ut alerten hvis alle heroene er dø og dragen har mer en 0 i HP
+        // !-sjekker om det er minst en hero med .alive = false hvis ikke så sendes alert ut
+        if (!atLeastOneHeroAlive && dragonObject.currentHP > 0) {
+          alert(`Spillet er tapt! ${dragonObject.name} har vunnet!`);
+        }
+      }
     </script>
   </body>
 </html>
